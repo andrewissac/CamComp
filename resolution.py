@@ -52,13 +52,13 @@ def GenerateCameraTabulateEntry(camera, cameras_, camToNormalizeWith = None):
     if camToNormalizeWith is None:
         camToNormalizeWith = camera
     normalizedPixelDensity = str(round(camera.pixelDensity / camToNormalizeWith.pixelDensity * 100, 2)) + " %"
-    return [camera.name, camera.resolution, camera.heightxwidth, camera.pixelDensity, normalizedPixelDensity]
+    return [camera.name, camera.resolution, camera.camtype.name, camera.heightxwidth, camera.pixelDensity, normalizedPixelDensity]
 
 def GenerateCameraTabulate(cameras_, camToNormalizeWith):
     cams = []
     for cam in cameras_:
         cams.append(GenerateCameraTabulateEntry(cam, cameras_, camToNormalizeWith))
-    return tabulate(cams, headers=["camera", "Megapixel", "height x width", "pixel/mm^2", "normalization"], tablefmt="github")
+    return tabulate(cams, headers=["camera", "megapixel", "sensor type","height x width", "pixel/mm^2", "normalization"], tablefmt="github")
 
 cameras = [Camera("6DII", CamType.FullFrame, 26.2),
            Camera("R6", CamType.FullFrame, 20.0),
@@ -77,11 +77,4 @@ print("--------------------- " + "used " + cameraToNormalizeWith + " to normaliz
 print("\n")
 print(camTable)
 
-
-
-
-
-
-#for cam in cameras:
-#    cam.PrintProperties(pixelDensityNormalization)
 
