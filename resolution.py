@@ -18,7 +18,7 @@ class Camera:
         self.sensorArea = Camera.fullFrameArea if self.camtype is CamType.FullFrame else Camera.apscArea
         self.resolution = resolution
         self.height, self.width = Camera.CalcHeightWidth(self.resolution, self.aspectRatio)
-        self.heightxwidth = str(self.height) + " x " + str(self.width)
+        self.widthxheight = str(self.width) + " x " + str(self.height)
         self.pixelDensity = Camera.CalcPixelDensity(self.resolution, self.sensorArea)
 
     @staticmethod
@@ -37,7 +37,7 @@ class Camera:
             pixelDensityToNormalizeWith = self. pixelDensity
 
         print(str(self.name) + " - resolution: " + str(self.resolution) + " MP: " +
-              str(self.height) + " x " + str(self.width) +
+              str(self.width) + " x " + str(self.height) +
               " with the pixel density of: " + str(self.pixelDensity) + " px/mm^2 which corresponds to " +
               str(round(self.pixelDensity / pixelDensityToNormalizeWith * 100, 2)) + " %")
 
@@ -52,18 +52,19 @@ def GenerateCameraTabulateEntry(camera, cameras_, camToNormalizeWith = None):
     if camToNormalizeWith is None:
         camToNormalizeWith = camera
     normalizedPixelDensity = str(round(camera.pixelDensity / camToNormalizeWith.pixelDensity * 100, 2)) + " %"
-    return [camera.name, camera.resolution, camera.camtype.name, camera.heightxwidth, camera.pixelDensity, normalizedPixelDensity]
+    return [camera.name, camera.resolution, camera.camtype.name, camera.widthxheight, camera.pixelDensity, normalizedPixelDensity]
 
 def GenerateCameraTabulate(cameras_, camToNormalizeWith):
     cams = []
     for cam in cameras_:
         cams.append(GenerateCameraTabulateEntry(cam, cameras_, camToNormalizeWith))
-    return tabulate(cams, headers=["camera", "megapixel", "sensor type","height x width", "pixel/mm^2", "normalization"], tablefmt="github")
+    return tabulate(cams, headers=["camera", "megapixel", "sensor type","width x height", "pixel/mm^2", "normalization"], tablefmt="github")
 
 cameras = [Camera("6DII", CamType.FullFrame, 26.2),
            Camera("R6", CamType.FullFrame, 20.0),
            Camera("R5", CamType.FullFrame, 44.7),
            Camera("700D", CamType.APSC, 18.0),
+           Camera("TEST", CamType.FullFrame, 18.0),
            Camera("80D", CamType.APSC, 24.2),
            Camera("90D", CamType.APSC, 32.5)]
 
