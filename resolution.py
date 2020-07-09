@@ -58,7 +58,7 @@ def GenerateCameraTabulate(cameras_, camToNormalizeWith):
     cams = []
     for cam in cameras_:
         cams.append(GenerateCameraTabulateEntry(cam, cameras_, camToNormalizeWith))
-    cams = sorted(cams, key=lambda x: x[5])
+    cams = sorted(cams, key=lambda x: float(x[5].strip(" %")))
     return tabulate(cams, headers=["camera", "megapixel", "sensor type","width x height", "pixel/mm^2", "normalization"], tablefmt="github")
 
 cameras = [Camera("6DII", CamType.FullFrame, 26.2),
@@ -72,7 +72,7 @@ cameras = [Camera("6DII", CamType.FullFrame, 26.2),
            Camera("SonyA9", CamType.FullFrame, 24),
            Camera("Sony6100",CamType.APSC, 24)]
 
-cameraToNormalizeWith = "R6"
+cameraToNormalizeWith = "R"
 camTable = GenerateCameraTabulate(cameras, cameraToNormalizeWith)
 
 
