@@ -16,10 +16,15 @@ class Camera:
         self.name = name
         self.camtype = camtype
         self.sensorArea = Camera.fullFrameArea if self.camtype is CamType.FullFrame else Camera.apscArea
-        self.resolution = resolution
+        self.resolution = resolution # MEGAPIXEL
         self.height, self.width = Camera.CalcHeightWidth(self.resolution, self.aspectRatio)
         self.widthxheight = str(self.width) + " x " + str(self.height)
         self.pixelDensity = Camera.CalcPixelDensity(self.resolution, self.sensorArea)
+
+    def __str__(self):
+        return str(self.name) + " - " + str(self.camtype) + " - sensor area mm^2: " + str(self.sensorArea) + \
+               " - resolution in MP: " + str(self.resolution) + \
+               " - " + str(self.widthxheight) + " - pixel density: " + str(self.pixelDensity)
 
     @staticmethod
     def CalcHeightWidth(Resolution, aspectRatio):
@@ -61,6 +66,12 @@ def GenerateCameraTabulate(cameras_, camToNormalizeWith):
     cams = sorted(cams, key=lambda x: float(x[5].strip(" %")))
     return tabulate(cams, headers=["camera", "megapixel", "sensor type","width x height", "pixel/mm^2", "normalization"], tablefmt="github")
 
+def SortCamerasByPixelDensity(cams):
+    return sorted(cams, key=lambda cam: cam.pixelDensity)
+
+def GetFullframeCams(cams):
+    return SortCamerasByPixelDensity([x for x in cams if x.camtype is CamType.FullFrame])
+
 cameras = [Camera("6DII", CamType.FullFrame, 26.2),
            Camera("R6", CamType.FullFrame, 20.0),
            Camera("R5", CamType.FullFrame, 44.7),
@@ -72,7 +83,9 @@ cameras = [Camera("6DII", CamType.FullFrame, 26.2),
            Camera("SonyA9", CamType.FullFrame, 24),
            Camera("Sony6100",CamType.APSC, 24)]
 
-cameraToNormalizeWith = "R"
+cameras = SortCamerasByPixelDensity(cameras)
+
+cameraToNormalizeWith = "R6"
 camTable = GenerateCameraTabulate(cameras, cameraToNormalizeWith)
 
 
@@ -82,4 +95,71 @@ print("--------------------- " + "used " + cameraToNormalizeWith + " to normaliz
 print("\n")
 print(camTable)
 
+class Rectangle:
+    def __init__(self, center, WidthxHeight):
+        self.center = center
+        self.centerX = center[0]
+        self.centerY = center[1]
+        self.width = WidthxHeight[0]
+        self.height = WidthxHeight[1]
+        self.widthxheight = WidthxHeight
+        self.Topleft = (self.centerX - self.width/2, self.centerY - self.height/2)
+        self.BottomRight = (self.centerX + self.width/2, self.centerY + self.height/2)
+
+    def __str__(self):
+        return "Center: " + str(self.center) + " - Width x Height: " + str(self.widthxheight) + \
+               " - Top left: " + str(self.Topleft) + " - Bottom right: " + str(self.BottomRight)
+
+from tkinter import *
+
+window = Tk()
+
+WindowWidth = 750
+WindowHeight = 500
+WindowSize= str(WindowWidth) + "x" + str(WindowHeight)
+WindowCenter = (WindowWidth/2, WindowHeight/2)
+BiggestRect = Rectangle(WindowCenter, (WindowWidth*0.8, WindowHeight*0.8))
+
+#ffCams = GetFullframeCams(cameras)
+ffCams = [cameras[1], cameras[3],cameras[5]]
+ffCamTable = GenerateCameraTabulate(ffCams, cameraToNormalizeWith)
+print(ffCamTable)
+
+
+def CalcRectanglesFromCameras(NormalizationRectangle, cams):
+    highestResolutionCam = max(cams, key=lambda cam: cam.pixelDensity)
+    NormalizationFactor = 1 / (highestResolutionCam.width / NormalizationRectangle.width)
+    return [Rectangle(NormalizationRectangle.center,(math.floor(cam.width * NormalizationFactor), math.floor(cam.height * NormalizationFactor))) for cam in cams]
+
+import random
+
+def generate_color():
+    color = '#{:02x}{:02x}{:02x}'.format(*map(lambda x: random.randint(0, 255), range(3)))
+    return color
+
+
+rectangles = CalcRectanglesFromCameras(BiggestRect, ffCams)
+for rect in rectangles:
+    print(rect)
+
+
+window.geometry(WindowSize)
+
+canvas = Canvas(window)
+
+from matplotlib import colors as pltcolors
+
+matplotlibcolors = list(pltcolors.cnames.values())
+
+index = 22
+
+for rectangle in reversed(rectangles):
+    color = matplotlibcolors[index]
+    index += 15
+    canvas.create_rectangle(rectangle.Topleft, rectangle.BottomRight, outline=color, fill=color)
+
+
+canvas.pack(fill=BOTH, expand=1)
+
+window.mainloop()
 
